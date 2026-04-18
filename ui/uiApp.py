@@ -244,4 +244,11 @@ ctk.CTkButton(button_frame, text="Stop", command=lambda: stop_training(), fg_col
 ########################################################################################################################
 # START APP
 
+#edit this bit out later
+def on_close():
+    app.destroy()
+    exit()
+
+app.protocol("WM_DELETE_WINDOW", on_close)
+
 app.mainloop()
