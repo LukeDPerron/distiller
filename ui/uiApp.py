@@ -4,6 +4,8 @@ import time
 import json
 import matplotlib.pyplot as plt
 from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
+import sys
+from datetime import datetime
 
 
 ########################################################################################################################
@@ -104,28 +106,46 @@ time_label.pack(pady=5)
 ########################################################################################################################
 # GRAPH (RIGHT TOP)
 
-graph_frame = ctk.CTkFrame(right_frame)
-graph_frame.pack(fill="both", expand=True)
+graph_frame = ctk.CTkFrame(right_frame, height=500)
+graph_frame.pack(fill="both", expand=False, pady=(0, 10))
+graph_frame.pack_propagate(False)
 
 fig, ax = plt.subplots()
 ax.set_title("Training Metrics")
 ax.set_xlabel("Epoch")
 ax.set_ylabel("Accuracy")
 
-
 canvas = FigureCanvasTkAgg(fig, master=graph_frame)
 canvas.get_tk_widget().pack(fill="both", expand=True)
 
 
 ########################################################################################################################
-# MATPLOTLIB
+# TERMINAL OUTPUT (RIGHT BOTTOM)
 
 output_box = ctk.CTkTextbox(right_frame, height=180)
-output_box.pack(fill="x", pady=10)
+output_box.pack(fill="x", pady=(0, 10))
 
 
 ########################################################################################################################
-# BACKEND PLACEHOLDER (FOR DISTILLER LATER)
+# TERMINAL OUTPUT
+
+class TextRedirector:
+    def __init__(self, textbox):
+        self.textbox = textbox
+
+    def write(self, text):
+        # self.textbox.insert("end", datetime.now())
+        self.textbox.insert("end", text)
+        self.textbox.see("end")  # Auto-scroll
+
+    def flush(self):
+        pass
+ 
+sys.stdout = TextRedirector(output_box)
+sys.stderr = TextRedirector(output_box)
+
+# ########################################################################################################################
+# # BACKEND PLACEHOLDER (FOR DISTILLER LATER)
 
 def distiller_step(epoch):
     """
@@ -142,12 +162,13 @@ def distiller_step(epoch):
 # AI GENERATED TEST FUNCTION TO SEE IF IT WORKS DURING DEVELOPMENT
 def fake_training():
     global running
+    print("running")
 
     running = True
 
     run_button.configure(state="disabled")
     status_label.configure(text="Running...", text_color="yellow")
-    # output_box.delete("1.0", "end")
+    output_box.delete("1.0", "end")
 
     epochs = int(epoch_entry.get())
     progress_bar.set(0)
