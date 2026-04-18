@@ -5,42 +5,48 @@ import json
 import matplotlib.pyplot as plt
 from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
 
-# -------------------------------
-# App Setup
-# -------------------------------
+
+########################################################################################################################
+# Setup
+
 ctk.set_appearance_mode("dark")
 ctk.set_default_color_theme("blue")
 
 app = ctk.CTk()
-app.title("Distiller Training UI (Framework)")
-app.geometry("1100x650")
+app.title("Distiller Training UI")
 
-# -------------------------------
-# Global State
-# -------------------------------
+
+########################################################################################################################
+# Setting Global Variables
+
 running = False
 loss_values = []
 acc_values = []
 epochs_list = []
 
-# -------------------------------
+
+########################################################################################################################
 # Layout Frames
-# -------------------------------
+
+# Frame for the entire page
 main_frame = ctk.CTkFrame(app)
 main_frame.pack(fill="both", expand=True, padx=10, pady=10)
 
+# Frame for the left side that will contain the input config
 left_frame = ctk.CTkFrame(main_frame, width=300)
 left_frame.pack(side="left", fill="y", padx=10, pady=10)
 
+# Frame for MatPlotLib
 right_frame = ctk.CTkFrame(main_frame)
 right_frame.pack(side="right", expand=True, fill="both", padx=10, pady=10)
 
-# -------------------------------
-# INPUTS (LEFT PANEL)
-# -------------------------------
+
+########################################################################################################################
+# INPUTS (LEFT FRAME)
+
 ctk.CTkLabel(left_frame, text="Training Config", font=("Arial", 16)).pack(pady=10)
 
-# Learning Rate
+# Learning Rate Row
 lr_row = ctk.CTkFrame(left_frame)
 lr_row.pack(fill="x", pady=5)
 
@@ -50,7 +56,7 @@ lr_entry = ctk.CTkEntry(lr_row)
 lr_entry.insert(0, "0.001")
 lr_entry.pack(side="right", padx=10)
 
-# Epochs
+# Epochs Row
 epoch_row = ctk.CTkFrame(left_frame)
 epoch_row.pack(fill="x", pady=5)
 
@@ -60,7 +66,7 @@ epoch_entry = ctk.CTkEntry(epoch_row)
 epoch_entry.insert(0, "10")
 epoch_entry.pack(side="right", padx=10)
 
-# Batch Size
+# Batch Size Row
 batch_row = ctk.CTkFrame(left_frame)
 batch_row.pack(fill="x", pady=5)
 
@@ -70,7 +76,7 @@ batch_entry = ctk.CTkEntry(batch_row)
 batch_entry.insert(0, "32")
 batch_entry.pack(side="right", padx=10)
 
-# Model
+# Model Row
 model_row = ctk.CTkFrame(left_frame)
 model_row.pack(fill="x", pady=5)
 
@@ -78,14 +84,13 @@ ctk.CTkLabel(model_row, text="Model").pack(side="left", padx=10)
 
 model_dropdown = ctk.CTkOptionMenu(
     model_row,
-    values=["resnet18", "resnet50", "mobilenet_v2", "vgg16"]
+    values=["resnet20", "resnet50", "mobilenet_v2", "vgg16"]
 )
-model_dropdown.set("resnet18")
+model_dropdown.set("resnet20")
 model_dropdown.pack(side="right", padx=10)
-# -------------------------------
-# STATUS
-# -------------------------------
-status_label = ctk.CTkLabel(left_frame, text="Idle", text_color="green")
+
+# STATUS Section
+status_label = ctk.CTkLabel(left_frame, text="Waiting to Run", text_color="green")
 status_label.pack(pady=10)
 
 progress_bar = ctk.CTkProgressBar(left_frame)
@@ -96,67 +101,32 @@ time_label = ctk.CTkLabel(left_frame, text="")
 time_label.pack(pady=5)
 
 
-# -------------------------------
+########################################################################################################################
 # GRAPH (RIGHT TOP)
-# -------------------------------
+
 graph_frame = ctk.CTkFrame(right_frame)
 graph_frame.pack(fill="both", expand=True)
 
 fig, ax = plt.subplots()
 ax.set_title("Training Metrics")
 ax.set_xlabel("Epoch")
-ax.set_ylabel("Value")
+ax.set_ylabel("Accuracy")
 
 
 canvas = FigureCanvasTkAgg(fig, master=graph_frame)
 canvas.get_tk_widget().pack(fill="both", expand=True)
 
-# -------------------------------
-# LOGS (RIGHT BOTTOM)
-# -------------------------------
+
+########################################################################################################################
+# MATPLOTLIB
+
 output_box = ctk.CTkTextbox(right_frame, height=180)
 output_box.pack(fill="x", pady=10)
 
-# -------------------------------
-# CONFIG SAVE / LOAD
-# -------------------------------
-def save_config():
-    config = {
-        "lr": lr_entry.get(),
-        "epochs": epoch_entry.get(),
-        "batch": batch_entry.get(),
-        "model": model_dropdown.get()
-    }
-    with open("config.json", "w") as f:
-        json.dump(config, f)
-    output_box.insert("end", "\nConfig saved.\n")
 
-def load_config():
-    try:
-        with open("config.json", "r") as f:
-            config = json.load(f)
-
-        lr_entry.delete(0, "end")
-        lr_entry.insert(0, config["lr"])
-
-        epoch_entry.delete(0, "end")
-        epoch_entry.insert(0, config["epochs"])
-
-        batch_entry.delete(0, "end")
-        batch_entry.insert(0, config["batch"])
-
-        model_dropdown.set(config["model"])
-
-        output_box.insert("end", "\nConfig loaded.\n")
-    except:
-        output_box.insert("end", "\nNo config found.\n")
-
-
-
-
-# -------------------------------
+########################################################################################################################
 # BACKEND PLACEHOLDER (FOR DISTILLER LATER)
-# -------------------------------
+
 def distiller_step(epoch):
     """
     🔌 Replace this later with real model training call
@@ -165,9 +135,11 @@ def distiller_step(epoch):
     acc = 80 + epoch
     return loss, acc
 
-# -------------------------------
+
+########################################################################################################################
 # TRAINING LOOP
-# -------------------------------
+
+# AI GENERATED TEST FUNCTION TO SEE IF IT WORKS DURING DEVELOPMENT
 def fake_training():
     global running
 
@@ -175,7 +147,7 @@ def fake_training():
 
     run_button.configure(state="disabled")
     status_label.configure(text="Running...", text_color="yellow")
-    output_box.delete("1.0", "end")
+    # output_box.delete("1.0", "end")
 
     epochs = int(epoch_entry.get())
     progress_bar.set(0)
@@ -221,11 +193,12 @@ def fake_training():
     run_button.configure(state="normal")
     running = False
 
-# -------------------------------
-# THREAD HANDLERS
-# -------------------------------
+
+########################################################################################################################
+# BUTTON FUNCTIONS
+
 def start_training():
-    thread = threading.Thread(target=fake_training)
+    thread = threading.Thread(target=fake_training) # fake_training can be used for testing
     thread.start()
 
 def stop_training():
@@ -234,22 +207,20 @@ def stop_training():
     status_label.configure(text="Stopped", text_color="red")
     run_button.configure(state="normal")
 
-# -------------------------------
-# BUTTON REFERENCE FIX
-# -------------------------------
-#run_button = ctk.CTkButton(button_frame, text="Run", command=start_training)
-#run_button.pack_forget()  # remove duplicate placeholder (we already created real one above)
-# 1. CREATE FRAME
+
+########################################################################################################################
+# DEFINING BUTTON FUNCTIONS REFERENCES
+
 button_frame = ctk.CTkFrame(left_frame)
 button_frame.pack()
+run_button = ctk.CTkButton(button_frame, text="Run", command=start_training)
+run_button.pack_forget()  # remove duplicate placeholder (we already created real one above)
 
 ctk.CTkButton(button_frame, text="Run", command=lambda: start_training()).pack(side="left", padx=5)
 ctk.CTkButton(button_frame, text="Stop", command=lambda: stop_training(), fg_color="red").pack(side="left", padx=5)
-ctk.CTkButton(button_frame, text="Save", command=save_config).pack(side="left", padx=5)
-ctk.CTkButton(button_frame, text="Load", command=load_config).pack(side="left", padx=5)
 
 
-# -------------------------------
+########################################################################################################################
 # START APP
-# -------------------------------
+
 app.mainloop()
