@@ -20,6 +20,7 @@ examples/GNMT/output_file*
 # Virtual env
 env/
 .env/
+venv/
 
 # IDEs
 .idea/
