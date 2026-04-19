@@ -36,3 +36,5 @@ distiller.egg-info/
 .ipynb_checkpoints/
 
 .venv
+
+data.cifar10
