@@ -7,6 +7,8 @@ import matplotlib.pyplot as plt
 from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
 import sys
 from datetime import datetime
+from terminal_run import run_compression, stop_compression
+import platform
 from tkinter import filedialog
 from terminal_run import run_compression
 
@@ -19,6 +21,8 @@ ctk.set_default_color_theme("blue")
 
 app = ctk.CTk()
 app.title("Distiller Training UI")
+
+app.state('zoomed')
 
 
 ########################################################################################################################
@@ -142,10 +146,18 @@ graph_frame = ctk.CTkFrame(right_frame, height=500)
 graph_frame.pack(fill="both", expand=False, pady=(0, 10))
 graph_frame.pack_propagate(False)
 
-fig, ax = plt.subplots()
-ax.set_title("Training Metrics")
-ax.set_xlabel("Epoch")
-ax.set_ylabel("Accuracy")
+# Create 2 side-by-side graphs
+fig, (ax_acc, ax_loss) = plt.subplots(1, 2, figsize=(12, 5))
+
+# Accuracy graph (LEFT)
+ax_acc.set_title("Accuracy")
+ax_acc.set_xlabel("Epoch")
+ax_acc.set_ylabel("Accuracy (%)")
+
+# Loss graph (RIGHT)
+ax_loss.set_title("Loss")
+ax_loss.set_xlabel("Epoch")
+ax_loss.set_ylabel("Loss")
 
 canvas = FigureCanvasTkAgg(fig, master=graph_frame)
 canvas.get_tk_widget().pack(fill="both", expand=True)
@@ -155,7 +167,7 @@ canvas.get_tk_widget().pack(fill="both", expand=True)
 # TERMINAL OUTPUT (RIGHT BOTTOM)
 
 output_box = ctk.CTkTextbox(right_frame, height=180)
-output_box.pack(fill="x", pady=(0, 10))
+output_box.pack(fill="both", expand=True, pady=(0, 10))
 
 
 ########################################################################################################################
@@ -176,17 +188,8 @@ class TextRedirector:
 sys.stdout = TextRedirector(output_box)
 sys.stderr = TextRedirector(output_box)
 
-# ########################################################################################################################
-# # BACKEND PLACEHOLDER (FOR DISTILLER LATER)
-
-def distiller_step(epoch):
-    """
-     Replace this later with real model training call
-    """
-    loss = 1 / (epoch + 1)
-    acc = 80 + epoch
-    return loss, acc
-
+########################################################################################################################
+# PARSING TERMINAL OUTPUT
 
 def parse_training_line(line):
     line = line.strip()
@@ -207,17 +210,37 @@ def parse_training_line(line):
 
 
 def update_graph():
-    ax.clear()
-    ax.set_title("Training Metrics")
-    ax.set_xlabel("Epoch")
-    ax.set_ylabel("Metric")
-    ax.plot(epochs_list, loss_values, label="Loss")
-    ax.plot(epochs_list, acc_values, label="Accuracy")
-    ax.legend()
+    # Clear both graphs
+    ax_acc.clear()
+    ax_loss.clear()
+
+    # Accuracy graph (LEFT)
+    ax_acc.set_title("Accuracy")
+    ax_acc.set_xlabel("Epoch")
+    ax_acc.set_ylabel("Accuracy (%)")
+    ax_acc.plot(
+        epochs_list,
+        acc_values,
+        label="Accuracy"
+    )
+
+    # Loss graph (RIGHT)
+    ax_loss.set_title("Loss")
+    ax_loss.set_xlabel("Epoch")
+    ax_loss.set_ylabel("Loss")
+    ax_loss.plot(
+        epochs_list,
+        loss_values,
+        label="Loss"
+    )
+
     canvas.draw()
 
+########################################################################################################################
+# TRAINING FUNCTION
 
-def real_training():
+
+def training():
     global running
     model = model_dropdown.get()
     learning_rate = float(lr_entry.get())
@@ -286,13 +309,16 @@ def real_training():
 # BUTTON FUNCTIONS
 
 def start_training():
-    thread = threading.Thread(target=real_training)
+    thread = threading.Thread(target=training)
     thread.start()
 
 def stop_training():
     global running
+
     running = False
-    status_label.configure(text="Stopped", text_color="red")
+    stop_compression()
+
+    status_label.configure(text="Killing Process, Please Wait...", text_color="red")
     run_button.configure(state="normal")
 
 
