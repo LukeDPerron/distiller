@@ -20,7 +20,6 @@ examples/GNMT/output_file*
 # Virtual env
 env/
 .env/
-venv/
 
 # IDEs
 .idea/
@@ -35,3 +34,6 @@ distiller.egg-info/
 
 # Jupyter
 .ipynb_checkpoints/
+.venv
+
+data.cifar10

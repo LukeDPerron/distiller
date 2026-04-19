@@ -35,19 +35,6 @@
 
 Network compression can reduce the memory footprint of a neural network, increase its inference speed and save energy. Distiller provides a [PyTorch](http://pytorch.org/) environment for prototyping and analyzing compression algorithms, such as sparsity-inducing methods and low-precision arithmetic.
 
-# Commands to make this sutff work
-
-## GPU present?
-> use this
-```powershell
-py -3.7 compress_classifier.py --arch resnet20_cifar --epochs 2 --batch-size 128 --gpus 0 "C:\Users\Numair\Downloads"
-```
-## Broke ahh???
->use this
-```powershell
-py -3.7 compress_classifier.py --arch resnet20_cifar --epochs 2 --batch-size 128 "C:\Users\Numair\Downloads"
-```
-
 
 ## Table of Contents
 

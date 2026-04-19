@@ -25,7 +25,7 @@ from sys import float_info
 from collections import OrderedDict
 from contextlib import contextmanager
 import torch
-from torchnet.meter import AverageValueMeter
+
 import logging
 from math import sqrt
 import matplotlib
@@ -36,6 +36,23 @@ from distiller.quantization.range_linear import is_post_train_quant_wrapper
 from distiller.quantization.pytorch_quant_conversion import QFunctionalWrapper
 import numpy as np
 import concurrent.futures
+
+class AverageValueMeter:
+    def __init__(self):
+        self.reset()
+
+    def reset(self):
+        self.sum = 0
+        self.n = 0
+        self.mean = 0
+
+    def add(self, value, n=1):
+        self.sum += value * n
+        self.n += n
+        self.mean = self.sum / self.n if self.n else 0
+
+    def value(self, k=None):  # accept optional arg safely
+        return self.mean
 
 msglogger = logging.getLogger()
 
