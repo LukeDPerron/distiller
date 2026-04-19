@@ -2,7 +2,7 @@ import os
 import subprocess
 import sys
 
-def run_compression(model, learning_rate, epochs, batch_size, line_handler=None):
+def run_compression(model, learning_rate, epochs, batch_size, scheduler_path=None, line_handler=None):
     os.chdir('../examples/classifier_compression')
 
     cmd = [
@@ -12,10 +12,12 @@ def run_compression(model, learning_rate, epochs, batch_size, line_handler=None)
         '-p', '100',
         '--epochs', str(epochs),
         '--batch-size', str(batch_size),
-        '--compress=../agp-pruning/resnet20_filters.schedule_agp.yaml',
         './data.cifar10',
         '-j', '2'
     ]
+
+    if scheduler_path:
+        cmd.extend(["--compress", scheduler_path])
 
     print("Running compression command:")
     print(" ".join(cmd))

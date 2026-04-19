@@ -7,6 +7,7 @@ import matplotlib.pyplot as plt
 from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
 import sys
 from datetime import datetime
+from tkinter import filedialog
 from terminal_run import run_compression
 
 
@@ -80,6 +81,35 @@ batch_entry = ctk.CTkEntry(batch_row)
 batch_entry.insert(0, "32")
 batch_entry.pack(side="right", padx=10)
 
+# Scheduler Row
+scheduler_row = ctk.CTkFrame(left_frame)
+scheduler_row.pack(fill="x", pady=5)
+
+ctk.CTkLabel(scheduler_row, text="Scheduler").pack(side="left", padx=10)
+
+scheduler_path = None  # global variable
+
+def select_scheduler():
+    global scheduler_path
+    file_path = filedialog.askopenfilename(
+        title="Select Scheduler YAML",
+        filetypes=[("YAML files", "*.yaml *.yml")]
+    )
+    if file_path:
+        scheduler_path = file_path
+        scheduler_label.configure(text="Selected")
+
+scheduler_label = ctk.CTkLabel(scheduler_row, text="None")
+scheduler_label.pack(side="right", padx=5)
+
+browse_button = ctk.CTkButton(
+    scheduler_row,
+    text="Browse",
+    width=70,
+    command=select_scheduler
+)
+browse_button.pack(side="right", padx=5)
+
 # Model Row
 model_row = ctk.CTkFrame(left_frame)
 model_row.pack(fill="x", pady=5)
@@ -151,7 +181,7 @@ sys.stderr = TextRedirector(output_box)
 
 def distiller_step(epoch):
     """
-    🔌 Replace this later with real model training call
+     Replace this later with real model training call
     """
     loss = 1 / (epoch + 1)
     acc = 80 + epoch
@@ -244,7 +274,7 @@ def real_training():
             output_box.insert("end", "\nCompression command finished with errors.\n")
 
     try:
-        run_compression(model, learning_rate, epochs, batch_size, line_handler=handle_line)
+        run_compression(model, learning_rate, epochs, batch_size,scheduler_path, line_handler=handle_line)
         app.after(0, lambda: training_finished(success=True))
     except Exception:
         app.after(0, lambda: training_finished(success=False))
