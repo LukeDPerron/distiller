@@ -5,7 +5,7 @@ import sys
 current_process = None
 original_dir = os.getcwd()
 
-def run_compression(model, learning_rate, printing_frequency, epochs, batch_size, line_handler=None):
+def run_compression(model, learning_rate, printing_frequency, epochs, batch_size, scheduler_path=None, line_handler=None):
     os.chdir('../examples/classifier_compression')
 
     cmd = [
