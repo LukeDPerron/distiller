@@ -5,14 +5,14 @@ import sys
 current_process = None
 original_dir = os.getcwd()
 
-def run_compression(model, learning_rate, epochs, batch_size, line_handler=None):
+def run_compression(model, learning_rate, printing_frequency, epochs, batch_size, line_handler=None):
     os.chdir('../examples/classifier_compression')
 
     cmd = [
         sys.executable, 'compress_classifier.py',
         '-a', str(model),
         '--lr', str(learning_rate),
-        '-p', '100',
+        '-p', str(printing_frequency),
         '--epochs', str(epochs),
         '--batch-size', str(batch_size),
         './data.cifar10',

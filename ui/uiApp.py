@@ -65,6 +65,16 @@ lr_entry = ctk.CTkEntry(lr_row)
 lr_entry.insert(0, "0.001")
 lr_entry.pack(side="right", padx=10)
 
+# Printing Frequency
+pf_row = ctk.CTkFrame(left_frame)
+pf_row.pack(fill="x", pady=5)
+
+ctk.CTkLabel(pf_row, text="Printing Frequency").pack(side="left", padx=10)
+
+pf_entry = ctk.CTkEntry(pf_row)
+pf_entry.insert(0, "100")
+pf_entry.pack(side="right", padx=10)
+
 # Epochs Row
 epoch_row = ctk.CTkFrame(left_frame)
 epoch_row.pack(fill="x", pady=5)
@@ -122,7 +132,7 @@ ctk.CTkLabel(model_row, text="Model").pack(side="left", padx=10)
 
 model_dropdown = ctk.CTkOptionMenu(
     model_row,
-    values=["resnet20_cifar", "resnet50", "mobilenet_v2", "vgg16"]
+    values=["resnet20_cifar", "vgg16_cifar", "resnet50", "mobilenet_v2", "vgg16"]
 )
 model_dropdown.set("resnet20_cifar")
 model_dropdown.pack(side="right", padx=10)
@@ -244,6 +254,7 @@ def training():
     global running
     model = model_dropdown.get()
     learning_rate = float(lr_entry.get())
+    printing_frequency = int(pf_entry.get())
     epochs = int(epoch_entry.get())
     batch_size = int(batch_entry.get())
 
@@ -297,7 +308,7 @@ def training():
             output_box.insert("end", "\nCompression command finished with errors.\n")
 
     try:
-        run_compression(model, learning_rate, epochs, batch_size,scheduler_path, line_handler=handle_line)
+        run_compression(model, learning_rate, printing_frequency, epochs, batch_size,scheduler_path, line_handler=handle_line)
         app.after(0, lambda: training_finished(success=True))
     except Exception:
         app.after(0, lambda: training_finished(success=False))
