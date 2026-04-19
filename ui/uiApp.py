@@ -7,7 +7,7 @@ import matplotlib.pyplot as plt
 from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
 import sys
 from datetime import datetime
-from terminal_run import run_compression
+from terminal_run import run_compression, stop_compression
 import platform
 
 
@@ -288,8 +288,11 @@ def start_training():
 
 def stop_training():
     global running
+
     running = False
-    status_label.configure(text="Stopped", text_color="red")
+    stop_compression()
+
+    status_label.configure(text="Killing Process, Please Wait...", text_color="red")
     run_button.configure(state="normal")
 
 

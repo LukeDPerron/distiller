@@ -2,6 +2,9 @@ import os
 import subprocess
 import sys
 
+current_process = None
+original_dir = os.getcwd()
+
 def run_compression(model, learning_rate, epochs, batch_size, line_handler=None):
     os.chdir('../examples/classifier_compression')
 
@@ -22,14 +25,16 @@ def run_compression(model, learning_rate, epochs, batch_size, line_handler=None)
     print("\n" + "="*80 + "\n")
 
     try:
-        process = subprocess.Popen(
+        global current_process
+
+        current_process = subprocess.Popen(
             cmd,
             stdout=subprocess.PIPE,
             stderr=subprocess.STDOUT,
             text=True
         )
 
-        for line in process.stdout:
+        for line in current_process.stdout:
             print(line, end='')
             if line_handler is not None:
                 try:
@@ -38,13 +43,26 @@ def run_compression(model, learning_rate, epochs, batch_size, line_handler=None)
                     pass
             sys.stdout.flush()
 
-        process.wait()
+        current_process.wait()
 
         print("\n" + "="*80)
-        if process.returncode == 0:
+        if current_process.returncode == 0:
             print("✓ Compression completed!")
         else:
-            print(f"✗ Compression failed with exit code {process.returncode}")
+            print(f"✗ Compression failed with exit code {current_process.returncode}")
 
     except Exception as e:
         print(f"Error: {e}")
+
+
+def stop_compression():
+    global current_process
+
+    if current_process is not None:
+        try:
+            current_process.kill()
+            print("\nStopping process...\n")
+            current_process = None
+            os.chdir(original_dir)
+        except Exception as e:
+            print(f"Error stopping process: {e}")
