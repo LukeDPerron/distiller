@@ -15,10 +15,12 @@ def run_compression(model, learning_rate, printing_frequency, epochs, batch_size
         '-p', str(printing_frequency),
         '--epochs', str(epochs),
         '--batch-size', str(batch_size),
-        '--compress=../agp-pruning/resnet20_filters.schedule_agp.yaml',
         './data.cifar10',
         '-j', '2'
     ]
+
+    if scheduler_path:
+        cmd.extend(["--compress", scheduler_path])
 
     print("Running compression command:")
     print(" ".join(cmd))
