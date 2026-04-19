@@ -8,6 +8,7 @@ from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
 import sys
 from datetime import datetime
 from terminal_run import run_compression
+import platform
 
 
 ########################################################################################################################
@@ -18,6 +19,8 @@ ctk.set_default_color_theme("blue")
 
 app = ctk.CTk()
 app.title("Distiller Training UI")
+
+app.state('zoomed')
 
 
 ########################################################################################################################
@@ -112,10 +115,18 @@ graph_frame = ctk.CTkFrame(right_frame, height=500)
 graph_frame.pack(fill="both", expand=False, pady=(0, 10))
 graph_frame.pack_propagate(False)
 
-fig, ax = plt.subplots()
-ax.set_title("Training Metrics")
-ax.set_xlabel("Epoch")
-ax.set_ylabel("Accuracy")
+# Create 2 side-by-side graphs
+fig, (ax_acc, ax_loss) = plt.subplots(1, 2, figsize=(12, 5))
+
+# Accuracy graph (LEFT)
+ax_acc.set_title("Accuracy")
+ax_acc.set_xlabel("Epoch")
+ax_acc.set_ylabel("Accuracy (%)")
+
+# Loss graph (RIGHT)
+ax_loss.set_title("Loss")
+ax_loss.set_xlabel("Epoch")
+ax_loss.set_ylabel("Loss")
 
 canvas = FigureCanvasTkAgg(fig, master=graph_frame)
 canvas.get_tk_widget().pack(fill="both", expand=True)
@@ -177,15 +188,31 @@ def parse_training_line(line):
 
 
 def update_graph():
-    ax.clear()
-    ax.set_title("Training Metrics")
-    ax.set_xlabel("Epoch")
-    ax.set_ylabel("Metric")
-    ax.plot(epochs_list, loss_values, label="Loss")
-    ax.plot(epochs_list, acc_values, label="Accuracy")
-    ax.legend()
-    canvas.draw()
+    # Clear both graphs
+    ax_acc.clear()
+    ax_loss.clear()
 
+    # Accuracy graph (LEFT)
+    ax_acc.set_title("Accuracy")
+    ax_acc.set_xlabel("Epoch")
+    ax_acc.set_ylabel("Accuracy (%)")
+    ax_acc.plot(
+        epochs_list,
+        acc_values,
+        label="Accuracy"
+    )
+
+    # Loss graph (RIGHT)
+    ax_loss.set_title("Loss")
+    ax_loss.set_xlabel("Epoch")
+    ax_loss.set_ylabel("Loss")
+    ax_loss.plot(
+        epochs_list,
+        loss_values,
+        label="Loss"
+    )
+
+    canvas.draw()
 
 def real_training():
     global running
