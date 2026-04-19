@@ -34,7 +34,9 @@ distiller.egg-info/
 
 # Jupyter
 .ipynb_checkpoints/
+.venv
 
+data.cifar10
 .venv
 
 data.cifar10

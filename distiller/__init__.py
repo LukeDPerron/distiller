@@ -37,7 +37,7 @@ del thinning
 
 # Distiller version
 try:
-    __version__ = pkg_resources.require("distiller")[0].version
+    __version__ = "1.0.0"
 except pkg_resources.DistributionNotFound:
     __version__ = "Unknown"
 

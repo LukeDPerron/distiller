@@ -26,9 +26,25 @@ from collections import defaultdict
 import logging
 msglogger = logging.getLogger()
 
-from torchnet.meter import AverageValueMeter
+
 from distiller.utils import sparsity, density
 
+class AverageValueMeter:
+    def __init__(self):
+        self.reset()
+
+    def reset(self):
+        self.sum = 0
+        self.n = 0
+        self.mean = 0
+
+    def add(self, value, n=1):
+        self.sum += value * n
+        self.n += n
+        self.mean = self.sum / self.n if self.n else 0
+
+    def value(self, k=None):  # accept optional arg safely
+        return self.mean
 
 class FreezeTraining(object):
     def __init__(self, name):

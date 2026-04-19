@@ -137,7 +137,7 @@ def resnet18(pretrained=False, progress=True, **kwargs):
         pretrained (bool): If True, returns a model pre-trained on ImageNet
         progress (bool): If True, displays a progress bar of the download to stderr
     """
-    return _resnet('resnet18', DistillerBasicBlock, [2, 2, 2, 2], pretrained, progress,
+    return _resnet('resnet18', DistillerBasicBlock, [2, 2, 2, 2], pretrained,
                    **kwargs)
 
 
@@ -148,7 +148,7 @@ def resnet34(pretrained=False, progress=True, **kwargs):
         pretrained (bool): If True, returns a model pre-trained on ImageNet
         progress (bool): If True, displays a progress bar of the download to stderr
     """
-    return _resnet('resnet34', DistillerBasicBlock, [3, 4, 6, 3], pretrained, progress,
+    return _resnet('resnet34', DistillerBasicBlock, [3, 4, 6, 3], pretrained,
                    **kwargs)
 
 
@@ -159,7 +159,7 @@ def resnet50(pretrained=False, progress=True, **kwargs):
         pretrained (bool): If True, returns a model pre-trained on ImageNet
         progress (bool): If True, displays a progress bar of the download to stderr
     """
-    return _resnet('resnet50', DistillerBottleneck, [3, 4, 6, 3], pretrained, progress,
+    return _resnet('resnet50', DistillerBottleneck, [3, 4, 6, 3], pretrained,
                    **kwargs)
 
 

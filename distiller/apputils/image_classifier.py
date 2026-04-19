@@ -27,7 +27,7 @@ import torch.nn.parallel
 import torch.backends.cudnn as cudnn
 import torch.optim
 import torch.utils.data
-import torchnet.meter as tnt
+
 import parser
 from functools import partial
 import argparse
@@ -38,6 +38,44 @@ import distiller.quantization as quantization
 import distiller.models as models
 from distiller.models import create_model
 from distiller.utils import float_range_argparse_checker as float_range
+
+class tnt:
+    class AverageValueMeter:
+        def __init__(self):
+            self.reset()
+
+        def reset(self):
+            self.sum = 0
+            self.n = 0
+            self.mean = 0
+
+        def add(self, value, n=1):
+            self.sum += value * n
+            self.n += n
+            self.mean = self.sum / self.n if self.n else 0
+
+        def value(self, k=None):  # accept optional arg safely
+            return self.mean
+
+    class ClassErrorMeter:
+        def __init__(self, accuracy=False):
+            self.correct = 0
+            self.total = 0
+            self.accuracy = accuracy
+
+        def add(self, output, target):
+            _, pred = output.max(1)
+            self.correct += pred.eq(target).sum().item()
+            self.total += target.size(0)
+
+        def value(self, k=1):
+            if self.total == 0:
+                return 0
+
+            acc = 100.0 * self.correct / self.total
+            result = acc if self.accuracy else 100.0 - acc
+
+            return result
 
 # Logger handle
 msglogger = logging.getLogger()
@@ -740,7 +778,7 @@ def _validate(data_loader, model, criterion, loggers, args, epoch=-1):
 
     if not _is_earlyexit(args):
         msglogger.info('==> Top1: %.3f    Loss: %.3f\n',
-                       classerr.value()[0], losses['objective_loss'].mean)
+                       classerr.value(), losses['objective_loss'].mean)
 
         if args.display_confusion:
             msglogger.info('==> Confusion:\n%s\n', str(confusion.value()))
