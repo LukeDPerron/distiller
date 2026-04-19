@@ -136,7 +136,7 @@ canvas.get_tk_widget().pack(fill="both", expand=True)
 # TERMINAL OUTPUT (RIGHT BOTTOM)
 
 output_box = ctk.CTkTextbox(right_frame, height=180)
-output_box.pack(fill="x", pady=(0, 10))
+output_box.pack(fill="both", expand=True, pady=(0, 10))
 
 
 ########################################################################################################################
@@ -157,17 +157,8 @@ class TextRedirector:
 sys.stdout = TextRedirector(output_box)
 sys.stderr = TextRedirector(output_box)
 
-# ########################################################################################################################
-# # BACKEND PLACEHOLDER (FOR DISTILLER LATER)
-
-def distiller_step(epoch):
-    """
-    🔌 Replace this later with real model training call
-    """
-    loss = 1 / (epoch + 1)
-    acc = 80 + epoch
-    return loss, acc
-
+########################################################################################################################
+# PARSING TERMINAL OUTPUT
 
 def parse_training_line(line):
     line = line.strip()
@@ -214,7 +205,11 @@ def update_graph():
 
     canvas.draw()
 
-def real_training():
+########################################################################################################################
+# TRAINING FUNCTION 
+
+
+def training():
     global running
     model = model_dropdown.get()
     learning_rate = float(lr_entry.get())
@@ -283,7 +278,7 @@ def real_training():
 # BUTTON FUNCTIONS
 
 def start_training():
-    thread = threading.Thread(target=real_training)
+    thread = threading.Thread(target=training)
     thread.start()
 
 def stop_training():
