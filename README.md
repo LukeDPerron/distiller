@@ -465,3 +465,103 @@ Any published work is built on top of the work of many other people, and the cre
 
 ## Disclaimer
 Distiller is released as a reference code for research purposes. It is not an official Intel product, and the level of quality and support may not be as expected from an official product. Additional algorithms and features are planned to be added to the library. Feedback and contributions from the open source and research communities are more than welcome.
+
+# DistillerPyTorch Code Modifications
+
+## Overview
+
+This document summarizes the minimal code changes applied to make DistillerPyTorch run on
+a modern local environment (Python 3.10+, PyTorch 2.x, Windows/Linux).
+
+## 1. Removed Version Locking
+
+Files:
+
+- setup.py
+- requirements.txt
+    Change: Strict dependency versions (e.g. torch==1.3.1) were removed.
+    Reason: Original dependencies are outdated and incompatible with modern Python and
+PyTorch versions.
+
+## 2. Fixed Package Version Check
+
+File:
+distiller/__init__.py
+Change:
+__version__ = pkg_resources.require (" distiller ")[0]. version
+was replaced with:
+__version__ = "1.0.0"
+Reason: Avoids runtime failure when the package is not installed via pip metadata.
+
+## 3. OS Detection Fix (Windows Compatibility)
+
+File:
+distiller/apputils/execution_env.py
+Change: Replaced:
+lsb_release.get_lsb_information ()[’DESCRIPTION ’]
+With a safe fallback:
+try:
+desc = lsb_release.get_distro_information ().get(’DESCRIPTION ’, ’
+Unknown ’)
+except Exception:
+desc = "Unknown"
+Reason: lsbrelease is not available or consistent on Windows.
+
+
+## 4. Disabled TensorBoard Backend
+
+File:
+distiller/data_loggers/tbbackend.py
+Change: Replaced the TensorBoard implementation with a dummy backend:
+class TBBackend:
+def __init__(self , logdir):
+pass
+def scalar_summary(self , *args , ** kwargs):
+pass
+def histogram_summary(self , *args , ** kwargs):
+pass
+def add_summary(self , *args , ** kwargs):
+pass
+def sync_to_file(self):
+pass
+def close(self):
+pass
+Reason: Original implementation depends on TensorFlow 1.x APIs (tf.Summary, FileWriter)
+which are deprecated.
+
+## 5. Removed Torchnet Dependency
+
+Files:
+
+- distiller/apputils/imageclassifier.py
+- distiller/dataloggers/collector.py
+- distiller/directives.py
+    Change: Replaced torchnet.meter usage with custom implementations:
+- AverageValueMeter
+- ClassErrorMeter
+    Reason: torchnet is outdated and incompatible with modern PyTorch.
+
+## 6. Metric API Fixes
+
+Change: Updated method usage:
+
+- meter.value(1)→ meter.value()
+- Added missing attributes: mean, reset()
+    Reason: Modern implementations differ from legacy Torchnet API.
+
+
+## 7. Optional Dependency Handling
+
+Change: Missing dependencies (e.g. sklearn, tabulate, git) were installed or handled grace-
+fully.
+Reason: Prevents crashes due to unused optional features.
+
+## Summary
+
+These modifications:
+
+- Remove outdated dependencies
+- Improve cross-platform compatibility
+- Replace deprecated APIs
+- Enable execution on modern Python/PyTorch
+    No core model or training logic was modified.
