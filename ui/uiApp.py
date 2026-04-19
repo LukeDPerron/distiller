@@ -2,10 +2,12 @@ import customtkinter as ctk
 import threading
 import time
 import json
+import re
 import matplotlib.pyplot as plt
 from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
 import sys
 from datetime import datetime
+from terminal_run import run_compression
 
 
 ########################################################################################################################
@@ -86,9 +88,9 @@ ctk.CTkLabel(model_row, text="Model").pack(side="left", padx=10)
 
 model_dropdown = ctk.CTkOptionMenu(
     model_row,
-    values=["resnet20", "resnet50", "mobilenet_v2", "vgg16"]
+    values=["resnet20_cifar", "resnet50", "mobilenet_v2", "vgg16"]
 )
-model_dropdown.set("resnet20")
+model_dropdown.set("resnet20_cifar")
 model_dropdown.pack(side="right", padx=10)
 
 # STATUS Section
@@ -156,70 +158,105 @@ def distiller_step(epoch):
     return loss, acc
 
 
-########################################################################################################################
-# TRAINING LOOP
+def parse_training_line(line):
+    line = line.strip()
+    if not line.startswith('Epoch:'):
+        return None
+    epoch_match = re.match(r'^Epoch:\s*\[(\d+)\]\s*\[\s*(\d+)\s*/\s*(\d+)\]\s*(.*)$', line)
+    if not epoch_match:
+        return None
+    epoch = int(epoch_match.group(1))
+    rest = epoch_match.group(4)
+    stats = {}
+    for match in re.finditer(r'([A-Za-z0-9_ ]+?)\s+(-?\d+\.\d+|-?\d+)(?=\s|$)', rest):
+        name = match.group(1).strip()
+        value_str = match.group(2)
+        value = float(value_str) if '.' in value_str else int(value_str)
+        stats[name] = value
+    return {'epoch': epoch, 'stats': stats}
 
-# AI GENERATED TEST FUNCTION TO SEE IF IT WORKS DURING DEVELOPMENT
-def fake_training():
+
+def update_graph():
+    ax.clear()
+    ax.set_title("Training Metrics")
+    ax.set_xlabel("Epoch")
+    ax.set_ylabel("Metric")
+    ax.plot(epochs_list, loss_values, label="Loss")
+    ax.plot(epochs_list, acc_values, label="Accuracy")
+    ax.legend()
+    canvas.draw()
+
+
+def real_training():
     global running
-    print("running")
+    model = model_dropdown.get()
+    learning_rate = float(lr_entry.get())
+    epochs = int(epoch_entry.get())
+    batch_size = int(batch_entry.get())
 
     running = True
-
     run_button.configure(state="disabled")
     status_label.configure(text="Running...", text_color="yellow")
     output_box.delete("1.0", "end")
-
-    epochs = int(epoch_entry.get())
     progress_bar.set(0)
+    time_label.configure(text="")
 
     loss_values.clear()
     acc_values.clear()
     epochs_list.clear()
+    epoch_plot_data = {}
 
-    for i in range(epochs):
-        if not running:
-            output_box.insert("end", "\nStopped.\n")
-            break
+    def handle_line(line):
+        parsed = parse_training_line(line)
+        if parsed is None:
+            return
 
-        time.sleep(0.5)
+        epoch = parsed['epoch']
+        stats = parsed['stats']
+        loss = stats.get('Overall Loss') or stats.get('Objective Loss') or stats.get('Loss')
+        acc = stats.get('Top1') or stats.get('Top1_exit0')
 
-        # backend hook
-        loss, acc = distiller_step(i)
+        if loss is None and acc is None:
+            return
 
-        loss_values.append(loss)
-        acc_values.append(acc)
-        epochs_list.append(i + 1)
+        epoch_plot_data[epoch] = {
+            'loss': loss,
+            'acc': acc
+        }
 
-        progress = (i + 1) / epochs
-        progress_bar.set(progress)
+        sorted_epochs = sorted(epoch_plot_data)
+        epochs_list[:] = [e + 1 for e in sorted_epochs]
+        loss_values[:] = [epoch_plot_data[e].get('loss', float('nan')) for e in sorted_epochs]
+        acc_values[:] = [epoch_plot_data[e].get('acc', float('nan')) for e in sorted_epochs]
 
-        remaining = (epochs - i) * 0.5
-        time_label.configure(text=f"ETA: {remaining:.1f}s")
+        app.after(0, update_graph)
 
-        output_box.insert(
-            "end",
-            f"Epoch {i+1}/{epochs} | Loss: {loss:.3f} | Acc: {acc:.1f}%\n"
-        )
-        output_box.see("end")
+        if epochs > 0:
+            progress = min(1.0, (epoch + 1) / epochs)
+            app.after(0, lambda p=progress: progress_bar.set(p))
 
-        # update graph
-        ax.clear()
-        ax.plot(epochs_list, loss_values, label="Loss")
-        ax.plot(epochs_list, acc_values, label="Accuracy")
-        ax.legend()
-        canvas.draw()
+    def training_finished(success=True):
+        status = "Completed" if success else "Failed"
+        color = "green" if success else "red"
+        status_label.configure(text=status, text_color=color)
+        run_button.configure(state="normal")
+        if not success:
+            output_box.insert("end", "\nCompression command finished with errors.\n")
 
-    status_label.configure(text="Completed", text_color="green")
-    run_button.configure(state="normal")
-    running = False
+    try:
+        run_compression(model, learning_rate, epochs, batch_size, line_handler=handle_line)
+        app.after(0, lambda: training_finished(success=True))
+    except Exception:
+        app.after(0, lambda: training_finished(success=False))
+    finally:
+        running = False
 
 
 ########################################################################################################################
 # BUTTON FUNCTIONS
 
 def start_training():
-    thread = threading.Thread(target=fake_training) # fake_training can be used for testing
+    thread = threading.Thread(target=real_training)
     thread.start()
 
 def stop_training():
@@ -235,10 +272,8 @@ def stop_training():
 button_frame = ctk.CTkFrame(left_frame)
 button_frame.pack()
 run_button = ctk.CTkButton(button_frame, text="Run", command=start_training)
-run_button.pack_forget()  # remove duplicate placeholder (we already created real one above)
-
-ctk.CTkButton(button_frame, text="Run", command=lambda: start_training()).pack(side="left", padx=5)
-ctk.CTkButton(button_frame, text="Stop", command=lambda: stop_training(), fg_color="red").pack(side="left", padx=5)
+run_button.pack(side="left", padx=5)
+ctk.CTkButton(button_frame, text="Stop", command=stop_training, fg_color="red").pack(side="left", padx=5)
 
 
 ########################################################################################################################
