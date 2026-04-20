@@ -479,55 +479,45 @@ Files:
 
 - setup.py
 - requirements.txt
-    Change: Strict dependency versions (e.g. torch==1.3.1) were removed.
-    Reason: Original dependencies are outdated and incompatible with modern Python and
+    - Change: Strict dependency versions (e.g. torch==1.3.1) were removed.
+    - Reason: Original dependencies are outdated and incompatible with modern Python and
 PyTorch versions.
 
 ## 2. Fixed Package Version Check
 
-File:
-distiller/__init__.py
-Change:
-__version__ = pkg_resources.require (" distiller ")[0]. version
-was replaced with:
-__version__ = "1.0.0"
-Reason: Avoids runtime failure when the package is not installed via pip metadata.
+#### File: distiller/__init__.py
+#### Change: __version__ = pkg_resources.require (" distiller ")[0]. version
+#### was replaced with: __version__ = "1.0.0"
+#### Reason: Avoids runtime failure when the package is not installed via pip metadata.
 
 ## 3. OS Detection Fix (Windows Compatibility)
 
-File:
-distiller/apputils/execution_env.py
-Change: Replaced:
-lsb_release.get_lsb_information ()[’DESCRIPTION ’]
-With a safe fallback:
-try:
-desc = lsb_release.get_distro_information ().get(’DESCRIPTION ’, ’
-Unknown ’)
-except Exception:
-desc = "Unknown"
-Reason: lsbrelease is not available or consistent on Windows.
+#### File: distiller/apputils/execution_env.py
+#### Change: Replaced: lsb_release.get_lsb_information ()[’DESCRIPTION ’]
+#### With a safe fallback:
+#### try: desc = lsb_release.get_distro_information ().get(’DESCRIPTION ’, ’ Unknown ’)
+#### except Exception: desc = "Unknown"
+#### Reason: lsbrelease is not available or consistent on Windows.
 
 
 ## 4. Disabled TensorBoard Backend
 
-File:
-distiller/data_loggers/tbbackend.py
-Change: Replaced the TensorBoard implementation with a dummy backend:
-class TBBackend:
-def __init__(self , logdir):
-pass
-def scalar_summary(self , *args , ** kwargs):
-pass
-def histogram_summary(self , *args , ** kwargs):
-pass
-def add_summary(self , *args , ** kwargs):
-pass
-def sync_to_file(self):
-pass
-def close(self):
-pass
-Reason: Original implementation depends on TensorFlow 1.x APIs (tf.Summary, FileWriter)
-which are deprecated.
+#### File: distiller/data_loggers/tbbackend.py
+#### Change: Replaced the TensorBoard implementation with a dummy backend:
+#### class TBBackend:
+#### def __init__(self , logdir):
+#### pass
+#### def scalar_summary(self , *args , ** kwargs):
+#### pass
+#### def histogram_summary(self , *args , ** kwargs):
+#### pass
+#### def add_summary(self , *args , ** kwargs):
+#### pass
+#### def sync_to_file(self):
+#### pass
+#### def close(self):
+#### pass
+#### Reason: Original implementation depends on TensorFlow 1.x APIs (tf.Summary, FileWriter) which are deprecated.
 
 ## 5. Removed Torchnet Dependency
 
@@ -554,14 +544,19 @@ Change: Updated method usage:
 
 Change: Missing dependencies (e.g. sklearn, tabulate, git) were installed or handled grace-
 fully.
+
 Reason: Prevents crashes due to unused optional features.
 
-## Summary
+## technical write-up
 
-These modifications:
+- What limitation or missing feature did you identify?
+  - Newer versions of Python didn't work with the strict dependency versions.
+  - Wasn't clear to use.
+- What files/classes did you modify?
+  - setup.py, requirements.txt, __init__.py execution_env.py, tbbackend.py, image_classifier.py, collector.py, and directives.py
+- What new capability does the tool now have?
+  - The tool can now be ran with newer versions of Python and has an easy to interpret ui.
+- What difficulties did you encounter?
+  - Getting the ui to work with the active, real data.
+  - figuring out what needed to be changed to make it compatible with newer Python versions (dependencies, old python code, etc)
 
-- Remove outdated dependencies
-- Improve cross-platform compatibility
-- Replace deprecated APIs
-- Enable execution on modern Python/PyTorch
-    No core model or training logic was modified.
